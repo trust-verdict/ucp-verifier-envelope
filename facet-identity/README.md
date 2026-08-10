@@ -20,19 +20,39 @@ dispatches on `alg` rather than assuming one signature format.
 | `vectors/vectors.json` | five deterministic vectors (valid, expired, bad-signature, rotated-key, wrong-audience) against a fixed test JWKS |
 | `vectors/test-jwks.json` | the fixed test key set the five vectors verify against |
 | `gen-vectors.mjs` | regenerates the five vectors, each self-validated with the standard `jose` library |
+| `verify.mjs` | **the entry evidence.** Re-checks the five vectors **as committed**, regenerating nothing. This is what the conformance gate runs. |
 | `mint-live-kya.mjs` | re-mints `vector-valid.json` from the live issuer over the public enroll + `private_key_jwt` flow |
+
+`gen-vectors.mjs` and `verify.mjs` prove different things, and only the second is
+entry evidence. The generator self-validates bytes it just produced, which shows
+the generator agrees with itself. The verifier loads the bytes sitting in this
+tree, which are the only bytes a cold reader ever sees. Section 8 of
+[`../spec/envelope.md`](../spec/envelope.md) makes the second a MUST.
 
 ## Reproduce it (zero trust in us)
 
 ```bash
 npm i
-node gen-vectors.mjs
+
+# Entry evidence: verify the bytes committed to this repo, nothing regenerated.
+node verify.mjs
 # valid          -> verifies
 # expired        -> rejected ERR_JWT_EXPIRED
 # bad-signature  -> rejected ERR_JWS_SIGNATURE_VERIFICATION_FAILED
 # rotated-key    -> rejected ERR_JWKS_NO_MATCHING_KEY
 # wrong-audience -> signature verifies BY DESIGN; the audience mismatch is a consumer check
+# committed-vector conformance: 10 pass, 0 fail
+
+# Optional: rebuild the vectors from scratch and watch the generator self-validate.
+node gen-vectors.mjs
 ```
+
+`verify.mjs` exits non-zero if any vector drifts. It also asserts it observed a
+pass **and every reject reason**, so a green run shows the checks discriminate
+rather than merely accept. To confirm that for yourself, flip one bit in the
+**decoded** signature bytes of the valid vector and re-run: the suite goes red
+and exits 1. Flipping a character in the encoded text proves nothing here, for
+the base64url padding reason documented elsewhere in this repo.
 
 No Facet-specific package is required. A Facet KYA is a plain RFC 7519 ES256 JWT,
 so it verifies with any JOSE library against the issuer's published JWKS; the
