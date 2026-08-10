@@ -103,6 +103,34 @@ jobs:
         run: node verify.mjs
 
   # ---------------------------------------------------------------------
+  # The Facet identity profile. Same rule again: verify.mjs runs over the
+  # bytes in the repo and regenerates nothing. Kept as its own job rather
+  # than folded into the Fidacy matrix above, even though the toolchain is
+  # the same (Node + jose), because these are different issuers and the job
+  # name is what a reader sees first when the gate goes red.
+  #
+  # This job is why facet-identity being listed in paths: without a job was
+  # worth closing quickly rather than leaving: a PR touching only this
+  # profile would trigger the workflow, run everyone else's jobs, and report
+  # green without anything having checked the profile that changed.
+  # ---------------------------------------------------------------------
+  facet-identity:
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '20'
+      - name: install
+        working-directory: facet-identity
+        run: npm i
+      - name: verify committed vectors (the gate; 10/10 or red)
+        working-directory: facet-identity
+        run: node verify.mjs
+
+  # ---------------------------------------------------------------------
   # Live end to end. Cron only. Mints a real KYA and verifies two
   # production issuers offline. Never blocks a PR.
   # ---------------------------------------------------------------------
