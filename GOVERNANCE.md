@@ -79,6 +79,21 @@ decide without them. That decision names who was absent. If the absence is
 structural rather than temporary, the right fix is the maintainer list, not a
 series of decisions taken around someone.
 
+**The absence path routes around silence, never around a written no.** A
+recorded objection does not expire because its author went quiet afterwards. A
+proposal that drew an objection stays blocked until the objection is withdrawn
+in writing or the objector is no longer a maintainer. Absence means never
+having answered; it is not a statute of limitations on a no.
+
+**The absence path cannot rewrite the rules it runs under.** Changes to this
+document need every current maintainer, because deciding without one leaves
+two, and two people who can amend governance while invoking it hold the org
+rather than share it. The one exception is the fix the absence clause already
+points at: removing a structurally absent maintainer is itself a governance
+change, so it may proceed without them, but only after 90 days, a second
+recorded attempt to reach them, and a public note naming who was removed and
+why.
+
 **None of this blocks an issuer's own profile.** Deadlock here is bounded to
 what the org actually governs. Claim semantics, keys, verifiers and production
 services stay with the issuer, so a stalled envelope proposal never stops
